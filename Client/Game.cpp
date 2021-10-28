@@ -45,6 +45,8 @@ bool Game::Init()
 
 	mTicksCount = SDL_GetTicks();
 
+	LoadData();
+
 	return true;
 }
 
@@ -64,6 +66,12 @@ void Game::Shutdown()
 	//SDL_DestroyRenderer(mRenderer);
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
+}
+
+Entity Game::CreateEntity()
+{
+	Entity e = { mRegistry.create(), this };
+	return e;
 }
 
 void Game::ProcessInput()
@@ -98,6 +106,17 @@ void Game::Update()
 	}
 	mTicksCount = SDL_GetTicks();
 	
+	// Test code
+	auto view = mRegistry.view<Player>();
+	for (auto entity : view)
+	{
+		Entity e = { entity, this };
+
+		auto& t = e.GetComponent<Temp>();
+
+		LOG(t.word);
+	}
+	///////////////////////
 }
 
 void Game::Render()
@@ -106,4 +125,13 @@ void Game::Render()
 	SDL_RenderClear(mRenderer);
 
 	SDL_RenderPresent(mRenderer);
+}
+
+void Game::LoadData()
+{
+	// Test code
+	auto e = CreateEntity();
+	e.AddComponent<Temp>();
+	e.AddTag<Player>();
+	/////////////////////////////////
 }

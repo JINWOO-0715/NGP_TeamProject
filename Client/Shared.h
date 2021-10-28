@@ -21,4 +21,7 @@ using std::unordered_map;
 
 #include "Log.h"
 
+#include "Tags.h"
+#include "Components.h"
 #include "Game.h"
+#include "Entity.h"
