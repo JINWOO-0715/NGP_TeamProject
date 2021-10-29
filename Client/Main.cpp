@@ -2,19 +2,19 @@
 
 int main()
 {
-	Game game;
+	auto game = Game::Instance();
 
-	bool res = game.Init();
+	bool res = game->Init();
 	if (!res)
 	{
 		LOG("Could not initialize game.");
 	}
 	else
 	{
-		game.Run();
+		game->Run();
 	}
 
-	game.Shutdown();
+	game->Shutdown();
 
 	return 0;
 }

@@ -35,6 +35,9 @@
     <ClCompile Include="PCH.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Systems.cpp">
+      <Filter>Source Files\ECS</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components.h">
@@ -49,9 +52,6 @@
     <ClInclude Include="Log.h">
       <Filter>Source Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Tags.h">
-      <Filter>Source Files\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Math.h">
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
@@ -60,6 +60,12 @@
     </ClInclude>
     <ClInclude Include="Shared.h">
       <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Tags.h">
+      <Filter>Source Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems.h">
+      <Filter>Source Files\ECS</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,3 +1,4 @@
 #pragma once
 
-struct Player {};
+struct Paddle {};
+struct Ball {};

@@ -1,8 +1,12 @@
 #include "PCH.h"
 #include "Game.h"
 
+#include "Entity.h"
+
 Game::Game()
-	: mWindow(nullptr)
+	: mWindowWidth(0)
+	, mWindowHeight(0)
+	, mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mTicksCount(0)
 	, mIsRunning(true)
@@ -10,12 +14,13 @@ Game::Game()
 
 }
 
-Game::~Game()
+Game* Game::Instance()
 {
-
+	static Game instance;
+	return &instance;
 }
 
-bool Game::Init()
+bool Game::Init(int w, int h)
 {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 	{
@@ -23,7 +28,10 @@ bool Game::Init()
 		return false;
 	}
 
-	mWindow = SDL_CreateWindow("Untitled", 100, 100, 1024, 768, 0);
+	mWindowWidth = w;
+	mWindowHeight = h;
+
+	mWindow = SDL_CreateWindow("Untitled", 100, 100, w, h, 0);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -62,15 +70,23 @@ void Game::Run()
 
 void Game::Shutdown()
 {
+	for (auto e : mEntities)
+	{
+		delete e;
+	}
+	mEntities.clear();
+
 	IMG_Quit();
 	//SDL_DestroyRenderer(mRenderer);
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
 }
 
-Entity Game::CreateEntity()
+Entity* Game::CreateEntity()
 {
-	Entity e = { mRegistry.create(), this };
+	Entity* e = new Entity{ mRegistry.create(), this };
+	e->AddComponent<TransformComponent>();
+	mEntities.push_back(e);
 	return e;
 }
 
@@ -105,18 +121,6 @@ void Game::Update()
 		deltaTime = 0.05f;
 	}
 	mTicksCount = SDL_GetTicks();
-	
-	// Test code
-	auto view = mRegistry.view<Player>();
-	for (auto entity : view)
-	{
-		Entity e = { entity, this };
-
-		auto& t = e.GetComponent<Temp>();
-
-		LOG(t.word);
-	}
-	///////////////////////
 }
 
 void Game::Render()
@@ -124,14 +128,20 @@ void Game::Render()
 	SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255);
 	SDL_RenderClear(mRenderer);
 
+	auto view = mRegistry.view<PaddleComponent, TransformComponent>();
+	for (auto entity : view)
+	{
+		auto [paddle, transform] = view.get<PaddleComponent, TransformComponent>(entity);
+
+		Systems::DrawPaddle(paddle.Width, paddle.Height, transform.Position);
+	}
+
 	SDL_RenderPresent(mRenderer);
 }
 
 void Game::LoadData()
 {
-	// Test code
 	auto e = CreateEntity();
-	e.AddComponent<Temp>();
-	e.AddTag<Player>();
-	/////////////////////////////////
+	e->AddTag<Paddle>();
+	e->AddComponent<PaddleComponent>(15.0f, 100.0f);
 }
