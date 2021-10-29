@@ -20,14 +20,24 @@ struct PaddleComponent
 		: Width(0.0f)
 		, Height(0.0f) {}
 
-	PaddleComponent(const Vector2& vec)
-		: Width(vec.x)
-		, Height(vec.y) {}
-
 	PaddleComponent(float w, float h)
 		: Width(w)
 		, Height(h) {}
 
 	float Width;
 	float Height;
+};
+
+struct MovementComponent
+{
+	MovementComponent()
+		: Speed(0.0f)
+		, Direction(0.0f) {}
+
+	MovementComponent(float speed)
+		: Speed(speed)
+		, Direction(0.0f) {}
+
+	float Speed;
+	float Direction;
 };

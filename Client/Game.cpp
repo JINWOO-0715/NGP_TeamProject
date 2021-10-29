@@ -90,6 +90,15 @@ Entity* Game::CreateEntity()
 	return e;
 }
 
+Entity* Game::CreatePaddle(float w, float h, float speed)
+{
+	Entity* e = CreateEntity();
+	e->AddTag<Paddle>();
+	e->AddComponent<PaddleComponent>(w, h);
+	e->AddComponent<MovementComponent>(speed);
+	return e;
+}
+
 void Game::ProcessInput()
 {
 	SDL_Event event;
@@ -108,6 +117,16 @@ void Game::ProcessInput()
 	{
 		mIsRunning = false;
 	}
+
+	auto view = mRegistry.view<Paddle>();
+	for (auto entity : view)
+	{
+		Entity e = { entity, this };
+
+		MovementComponent& movement = e.GetComponent<MovementComponent>();
+
+		Systems::UpdateDirection(state, movement.Direction);
+	}
 }
 
 void Game::Update()
@@ -121,6 +140,17 @@ void Game::Update()
 		deltaTime = 0.05f;
 	}
 	mTicksCount = SDL_GetTicks();
+
+	auto view = mRegistry.view<Paddle>();
+	for (auto entity : view)
+	{
+		Entity e = { entity, this };
+
+		MovementComponent& movement = e.GetComponent<MovementComponent>();
+		TransformComponent& transform = e.GetComponent<TransformComponent>();
+
+		Systems::UpdatePosition(movement.Speed, movement.Direction, transform.Position, deltaTime);
+	}
 }
 
 void Game::Render()
@@ -141,7 +171,5 @@ void Game::Render()
 
 void Game::LoadData()
 {
-	auto e = CreateEntity();
-	e->AddTag<Paddle>();
-	e->AddComponent<PaddleComponent>(15.0f, 100.0f);
+	CreatePaddle();
 }

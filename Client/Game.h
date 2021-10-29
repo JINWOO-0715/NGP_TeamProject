@@ -14,6 +14,7 @@ public:
 	void Shutdown();
 
 	Entity* CreateEntity();
+	Entity* CreatePaddle(float w = 15.0f, float h = 100.0f, float speed = 150.0f);
 
 	SDL_Renderer* GetRenderer() { return mRenderer; }
 
