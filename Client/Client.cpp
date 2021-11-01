@@ -120,10 +120,10 @@ void Client::Render()
 	SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255);
 	SDL_RenderClear(mRenderer);
 
-	auto view = mRegistry.view<PaddleComponent, TransformComponent>();
+	auto view = mRegistry.view<RectComponent, TransformComponent>();
 	for (auto entity : view)
 	{
-		auto [paddle, transform] = view.get<PaddleComponent, TransformComponent>(entity);
+		auto [paddle, transform] = view.get<RectComponent, TransformComponent>(entity);
 
 		Systems::DrawRect(mRenderer, paddle.Width, paddle.Height, transform.Position);
 	}
@@ -133,8 +133,9 @@ void Client::Render()
 
 void Client::LoadData()
 {
-	auto e = CreateEntity();
-	e->AddComponent<PaddleComponent>(15.0f, 100.0f);
-	e->AddComponent<MovementComponent>(100.0f);
-	e->AddTag<Paddle>();
+	CreatePaddle();
+
+	auto ball = CreateBall();
+	auto& transform = ball->GetComponent<TransformComponent>();
+	transform.Position = Vector2(mWindowWidth / 2.0f, mWindowHeight / 2.0f);
 }

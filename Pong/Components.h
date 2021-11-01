@@ -16,13 +16,13 @@ struct TransformComponent
 	Vector2 Position;
 };
 
-struct PaddleComponent
+struct RectComponent
 {
-	PaddleComponent()
+	RectComponent()
 		: Width(0.0f)
 		, Height(0.0f) {}
 
-	PaddleComponent(float w, float h)
+	RectComponent(float w, float h)
 		: Width(w)
 		, Height(h) {}
 
