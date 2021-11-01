@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client", "Client\Client.vcxproj", "{D15ED20B-4E05-4F8A-8276-10F00A929B2E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pong", "Pong\Pong.vcxproj", "{BAAC6C06-D988-4FED-9E03-E551D188A516}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "Server\Server.vcxproj", "{6192BB61-82CE-44C6-9CE7-39FEFB856EDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +19,14 @@ Global
 		{D15ED20B-4E05-4F8A-8276-10F00A929B2E}.Debug|x64.Build.0 = Debug|x64
 		{D15ED20B-4E05-4F8A-8276-10F00A929B2E}.Release|x64.ActiveCfg = Release|x64
 		{D15ED20B-4E05-4F8A-8276-10F00A929B2E}.Release|x64.Build.0 = Release|x64
+		{BAAC6C06-D988-4FED-9E03-E551D188A516}.Debug|x64.ActiveCfg = Debug|x64
+		{BAAC6C06-D988-4FED-9E03-E551D188A516}.Debug|x64.Build.0 = Debug|x64
+		{BAAC6C06-D988-4FED-9E03-E551D188A516}.Release|x64.ActiveCfg = Release|x64
+		{BAAC6C06-D988-4FED-9E03-E551D188A516}.Release|x64.Build.0 = Release|x64
+		{6192BB61-82CE-44C6-9CE7-39FEFB856EDC}.Debug|x64.ActiveCfg = Debug|x64
+		{6192BB61-82CE-44C6-9CE7-39FEFB856EDC}.Debug|x64.Build.0 = Debug|x64
+		{6192BB61-82CE-44C6-9CE7-39FEFB856EDC}.Release|x64.ActiveCfg = Release|x64
+		{6192BB61-82CE-44C6-9CE7-39FEFB856EDC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,37 +1,31 @@
-#include "PCH.h"
-#include "Game.h"
+#include "ClientPCH.h"
+#include "Client.h"
 
-#include "Entity.h"
-
-Game::Game()
-	: mWindowWidth(0)
+Client::Client()
+	: Game()
+	, mWindowWidth(0)
 	, mWindowHeight(0)
 	, mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mTicksCount(0)
-	, mIsRunning(true)
 {
 
 }
 
-Game* Game::Instance()
+bool Client::Init()
 {
-	static Game instance;
-	return &instance;
-}
+	Game::Init();
 
-bool Game::Init(int w, int h)
-{
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 	{
 		SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
 		return false;
 	}
 
-	mWindowWidth = w;
-	mWindowHeight = h;
+	mWindowWidth = 1024;
+	mWindowHeight = 768;
 
-	mWindow = SDL_CreateWindow("Untitled", 100, 100, w, h, 0);
+	mWindow = SDL_CreateWindow("Pong", 100, 100, mWindowWidth, mWindowHeight, 0);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -58,48 +52,16 @@ bool Game::Init(int w, int h)
 	return true;
 }
 
-void Game::Run()
+void Client::Shutdown()
 {
-	while (mIsRunning)
-	{
-		ProcessInput();
-		Update();
-		Render();
-	}
-}
-
-void Game::Shutdown()
-{
-	for (auto e : mEntities)
-	{
-		delete e;
-	}
-	mEntities.clear();
+	Game::Shutdown();
 
 	IMG_Quit();
-	//SDL_DestroyRenderer(mRenderer);
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
 }
 
-Entity* Game::CreateEntity()
-{
-	Entity* e = new Entity{ mRegistry.create(), this };
-	e->AddComponent<TransformComponent>();
-	mEntities.push_back(e);
-	return e;
-}
-
-Entity* Game::CreatePaddle(float w, float h, float speed)
-{
-	Entity* e = CreateEntity();
-	e->AddTag<Paddle>();
-	e->AddComponent<PaddleComponent>(w, h);
-	e->AddComponent<MovementComponent>(speed);
-	return e;
-}
-
-void Game::ProcessInput()
+void Client::ProcessInput()
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -129,7 +91,7 @@ void Game::ProcessInput()
 	}
 }
 
-void Game::Update()
+void Client::Update()
 {
 	while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
 		;
@@ -153,7 +115,7 @@ void Game::Update()
 	}
 }
 
-void Game::Render()
+void Client::Render()
 {
 	SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255);
 	SDL_RenderClear(mRenderer);
@@ -163,13 +125,16 @@ void Game::Render()
 	{
 		auto [paddle, transform] = view.get<PaddleComponent, TransformComponent>(entity);
 
-		Systems::DrawPaddle(paddle.Width, paddle.Height, transform.Position);
+		Systems::DrawRect(mRenderer, paddle.Width, paddle.Height, transform.Position);
 	}
 
 	SDL_RenderPresent(mRenderer);
 }
 
-void Game::LoadData()
+void Client::LoadData()
 {
-	CreatePaddle();
+	auto e = CreateEntity();
+	e->AddComponent<PaddleComponent>(15.0f, 100.0f);
+	e->AddComponent<MovementComponent>(100.0f);
+	e->AddTag<Paddle>();
 }

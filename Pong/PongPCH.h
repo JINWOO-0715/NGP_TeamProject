@@ -17,14 +17,10 @@
 
 using std::string;
 using std::shared_ptr;
+using std::unique_ptr;
 using std::vector;
 using std::array;
 using std::unordered_map;
 
-#include "Math.h"
+#include "PongMath.h"
 #include "Log.h"
-#include "Tags.h"
-#include "Components.h"
-#include "Systems.h"
-#include "Game.h"
-#include "Entity.h"

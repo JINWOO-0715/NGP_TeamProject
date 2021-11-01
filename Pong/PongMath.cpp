@@ -6,8 +6,8 @@
 // See LICENSE in root directory for full details.
 // ----------------------------------------------------------------
 
-#include "PCH.h"
-#include "Math.h"
+#include "PongPCH.h"
+#include "PongMath.h"
 
 const Vector2 Vector2::Zero(0.0f, 0.0f);
 const Vector2 Vector2::UnitX(1.0f, 0.0f);

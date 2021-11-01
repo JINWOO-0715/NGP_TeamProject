@@ -1,9 +1,7 @@
-#include "PCH.h"
+#include "PongPCH.h"
 #include "Systems.h"
 
-#include "Game.h"
-
-void Systems::DrawPaddle(float w, float h, const Vector2& position)
+void Systems::DrawRect(SDL_Renderer* renderer, float w, float h, const Vector2& position)
 {
 	SDL_Rect r{
 		static_cast<int>(position.x),
@@ -12,8 +10,8 @@ void Systems::DrawPaddle(float w, float h, const Vector2& position)
 		static_cast<int>(h)
 	};
 
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 255, 255, 255);
-	SDL_RenderFillRect(Game::Instance()->GetRenderer(), &r);
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_RenderFillRect(renderer, &r);
 }
 
 void Systems::UpdateDirection(const uint8_t* keystates, float& outDirection)
@@ -35,3 +33,5 @@ void Systems::UpdatePosition(float speed, float direction, Vector2& outPosition,
 {
 	outPosition.y += speed * direction * deltaTime;
 }
+
+

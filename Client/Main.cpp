@@ -1,20 +1,18 @@
-#include "PCH.h"
+#include "ClientPCH.h"
+#include "Client.h"
 
 int main()
 {
-	auto game = Game::Instance();
+	unique_ptr<Client> c = std::make_unique<Client>();
 
-	bool res = game->Init();
-	if (!res)
+	bool res = c->Init();
+
+	if (res)
 	{
-		LOG("Could not initialize game.");
-	}
-	else
-	{
-		game->Run();
+		c->Run();
 	}
 
-	game->Shutdown();
+	c->Shutdown();
 
 	return 0;
 }
