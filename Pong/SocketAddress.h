@@ -7,6 +7,15 @@ class SocketAddress
 	friend class TCPSocket;
 
 public:
+	SocketAddress()
+	{
+		ZeroMemory(&mSockAddr, sizeof(mSockAddr));
+
+		GetAsSockAddrIn()->sin_family = AF_INET;
+		GetAsSockAddrIn()->sin_port = 0;
+		GetAsSockAddrIn()->sin_addr.s_addr = INADDR_ANY;
+	}
+
 	SocketAddress(const string& address, uint16_t port)
 	{
 		ZeroMemory(&mSockAddr, sizeof(mSockAddr));
