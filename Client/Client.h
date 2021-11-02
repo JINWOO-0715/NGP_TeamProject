@@ -8,16 +8,19 @@ public:
 	virtual bool Init() override;
 	virtual void Shutdown() override;
 
+	virtual void Run() override;
+
 	SDL_Renderer* GetRenderer() { return mRenderer; }
 
 	int GetWindowWidth() const { return mWindowWidth; }
 	int GetWindowHeight() const { return mWindowHeight; }
 
-protected:
-	virtual void ProcessInput() override;
-	virtual void Update() override;
-	virtual void Render() override;
-	virtual void LoadData() override;
+private:
+	bool NetworkInit();
+	void ProcessInput();
+	void Update();
+	void Render();
+	void LoadData();
 
 private:
 	int mWindowWidth;
@@ -26,4 +29,6 @@ private:
 	SDL_Window* mWindow;
 	SDL_Renderer* mRenderer;
 	uint32_t mTicksCount;
+
+	TCPSocketPtr mClientSocket;
 };

@@ -8,6 +8,7 @@ Client::Client()
 	, mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mTicksCount(0)
+	, mClientSocket(nullptr)
 {
 
 }
@@ -15,6 +16,11 @@ Client::Client()
 bool Client::Init()
 {
 	Game::Init();
+	if (NetworkInit() == false)
+	{
+		LOG("Unable to initialize Network");
+		return false;
+	}
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 	{
@@ -54,11 +60,40 @@ bool Client::Init()
 
 void Client::Shutdown()
 {
+	SocketUtil::StaticShutdown();
+
 	Game::Shutdown();
 
 	IMG_Quit();
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
+}
+
+void Client::Run()
+{
+	while (mIsRunning)
+	{
+		ProcessInput();
+		Update();
+		Render();
+	}
+}
+
+bool Client::NetworkInit()
+{
+	SocketUtil::StaticInit();
+
+	mClientSocket = SocketUtil::CreateTCPSocket();
+
+	SocketAddress serveraddr("127.0.0.1", 9000);
+	if (mClientSocket->Connect(serveraddr) == SOCKET_ERROR)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 void Client::ProcessInput()

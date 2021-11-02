@@ -27,6 +27,8 @@ public:
 
 	uint32_t GetSize() const { return sizeof(mSockAddr); }
 
+	string ToString() const;
+
 	bool operator==(const SocketAddress& other)
 	{
 		return !memcmp(&mSockAddr, &other.mSockAddr, GetSize());

@@ -16,16 +16,6 @@ bool Game::Init()
 	return true;
 }
 
-void Game::Run()
-{
-	while (mIsRunning)
-	{
-		ProcessInput();
-		Update();
-		Render();
-	}
-}
-
 void Game::Shutdown()
 {
 
