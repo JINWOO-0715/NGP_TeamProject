@@ -12,6 +12,8 @@ bool Server::Init()
 {
 	SocketUtil::StaticInit();
 
+	CreateGameWorld();
+
 	mListenThread = { std::thread(&Server::ListenThreadFunc, this) };
 	
 	return true;
@@ -66,5 +68,45 @@ void Server::ListenThreadFunc()
 
 void Server::ClientThreadFunc(const TCPSocketPtr& clientSock)
 {
-	LOG("Im on my way!");
+	// Send HelloPacket to client
+	ServerToClient packet;
+
+	auto leftPaddle = mEntities[LEFT_PADDLE_ID];
+	auto rightPaddle = mEntities[RIGHT_PADDLE_ID];
+
+	packet.LeftPaddleID = LEFT_PADDLE_ID;
+	packet.LeftPaddleBType = BehaviorType::Create;
+	packet.LeftPaddlePosition = leftPaddle->GetComponent<TransformComponent>().Position;
+
+	packet.RightPaddleID = RIGHT_PADDLE_ID;
+	packet.RightPaddleBType = BehaviorType::Create;
+	packet.RightPaddlePosition = rightPaddle->GetComponent<TransformComponent>().Position;
+
+	clientSock->Send(&packet, sizeof(packet));
+
+	while (true)
+	{
+
+	}
+}
+
+void Server::CreateGameWorld()
+{
+	// Create left paddle
+	{
+		auto paddle = CreatePaddle();
+		auto& id = paddle->AddComponent<IdComponent>(LEFT_PADDLE_ID);
+		auto& transform = paddle->GetComponent<TransformComponent>();
+		transform.Position = Vector2(0.0f, (WINDOW_HEIGHT / 2) - (PADDLE_HEIGHT / 2));
+		mEntities[id.ID] = paddle;
+	}
+
+	// Create right paddle
+	{
+		auto paddle = CreatePaddle();
+		auto& id = paddle->AddComponent<IdComponent>(RIGHT_PADDLE_ID);
+		auto& transform = paddle->GetComponent<TransformComponent>();
+		transform.Position = Vector2((WINDOW_WIDTH - PADDLE_WIDTH), (WINDOW_HEIGHT / 2) - (PADDLE_HEIGHT / 2));
+		mEntities[id.ID] = paddle;
+	}
 }

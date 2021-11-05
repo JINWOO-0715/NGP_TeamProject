@@ -16,6 +16,8 @@ private:
 	void ListenThreadFunc();
 	void ClientThreadFunc(const TCPSocketPtr& clientSock);
 
+	void CreateGameWorld();
+
 private:
 	static const int MAXIMUM_PLAYER_NUM = 2;
 

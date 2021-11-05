@@ -28,7 +28,10 @@ protected:
 
 	const int WINDOW_WIDTH = 1024;
 	const int WINDOW_HEIGHT = 768;
+	const float PADDLE_WIDTH = 15.0f;
+	const float PADDLE_HEIGHT = 100.0f;
+	const float PADDLE_SPEED = 200.0f;
+	const float BALL_WIDTH = 15.0f;
 
-private:
-	vector<Entity*> mEntities;
+	unordered_map<uint8_t, Entity*> mEntities;
 };

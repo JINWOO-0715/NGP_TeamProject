@@ -17,7 +17,8 @@ private:
 	void ProcessInput();
 	void Update();
 	void Render();
-	void LoadData();
+
+	void RecvHelloPacket();
 
 private:
 	SDL_Window* mWindow;
@@ -25,4 +26,6 @@ private:
 	uint32_t mTicksCount;
 
 	TCPSocketPtr mClientSocket;
+
+	bool mIsGameStart;
 };

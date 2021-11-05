@@ -7,6 +7,7 @@ Client::Client()
 	, mRenderer(nullptr)
 	, mTicksCount(0)
 	, mClientSocket(nullptr)
+	, mIsGameStart(false)
 {
 
 }
@@ -47,8 +48,6 @@ bool Client::Init()
 
 	mTicksCount = SDL_GetTicks();
 
-	LoadData();
-
 	return true;
 }
 
@@ -80,6 +79,7 @@ bool Client::NetworkInit()
 	SocketAddress serveraddr(SERVER_IP, SERVER_PORT);
 	if (mClientSocket->Connect(serveraddr) != SOCKET_ERROR)
 	{
+		RecvHelloPacket();
 		return true;
 	}
 	else
@@ -141,7 +141,27 @@ void Client::Render()
 	SDL_RenderPresent(mRenderer);
 }
 
-void Client::LoadData()
+void Client::RecvHelloPacket()
 {
-	
+	ServerToClient packet;
+
+	mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+
+	// Create left paddle
+	{
+		auto paddle = CreatePaddle();
+		auto& id = paddle->AddComponent<IdComponent>(packet.LeftPaddleID);
+		auto& transform = paddle->GetComponent<TransformComponent>();
+		transform.Position = packet.LeftPaddlePosition;
+		mEntities[id.ID] = paddle;
+	}
+
+	// Create right paddle
+	{
+		auto paddle = CreatePaddle();
+		auto& id = paddle->AddComponent<IdComponent>(packet.RightPaddleID);
+		auto& transform = paddle->GetComponent<TransformComponent>();
+		transform.Position = packet.RightPaddlePosition;
+		mEntities[id.ID] = paddle;
+	}
 }
