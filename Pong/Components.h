@@ -43,3 +43,14 @@ struct MovementComponent
 	float Speed;
 	float Direction;
 };
+
+struct IdComponent
+{
+	IdComponent()
+		: ID(0) {}
+
+	IdComponent(uint8_t id)
+		: ID(id) {}
+
+	uint8_t ID;
+};

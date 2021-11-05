@@ -2,6 +2,7 @@
 
 #include "PongPCH.h"
 
+#include "Packets.h"
 #include "Components.h"
 #include "Tags.h"
 #include "Game.h"

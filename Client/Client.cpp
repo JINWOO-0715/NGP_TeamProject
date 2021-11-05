@@ -78,13 +78,13 @@ bool Client::NetworkInit()
 	mClientSocket = SocketUtil::CreateTCPSocket();
 
 	SocketAddress serveraddr(SERVER_IP, SERVER_PORT);
-	if (mClientSocket->Connect(serveraddr) == SOCKET_ERROR)
+	if (mClientSocket->Connect(serveraddr) != SOCKET_ERROR)
 	{
-		return false;
+		return true;
 	}
 	else
 	{
-		return true;
+		return false;
 	}
 }
 
@@ -107,15 +107,7 @@ void Client::ProcessInput()
 		mIsRunning = false;
 	}
 
-	auto view = mRegistry.view<Paddle>();
-	for (auto entity : view)
-	{
-		Entity e = { entity, this };
-
-		MovementComponent& movement = e.GetComponent<MovementComponent>();
-
-		Systems::UpdateDirection(state, movement.Direction);
-	}
+	// TODO :: Send input state packet to server.
 }
 
 void Client::Update()
@@ -130,16 +122,7 @@ void Client::Update()
 	}
 	mTicksCount = SDL_GetTicks();
 
-	auto view = mRegistry.view<Paddle>();
-	for (auto entity : view)
-	{
-		Entity e = { entity, this };
-
-		MovementComponent& movement = e.GetComponent<MovementComponent>();
-		TransformComponent& transform = e.GetComponent<TransformComponent>();
-
-		Systems::UpdatePosition(movement.Speed, movement.Direction, transform.Position, deltaTime);
-	}
+	// TODO :: Update all entities' position with data from server.
 }
 
 void Client::Render()
@@ -160,9 +143,5 @@ void Client::Render()
 
 void Client::LoadData()
 {
-	CreatePaddle();
-
-	auto ball = CreateBall();
-	auto& transform = ball->GetComponent<TransformComponent>();
-	transform.Position = Vector2(mWindowWidth / 2.0f, mWindowHeight / 2.0f);
+	
 }
