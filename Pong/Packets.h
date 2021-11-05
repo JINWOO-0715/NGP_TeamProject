@@ -27,5 +27,5 @@ struct ServerToClient
 
 struct ClientToServer
 {
-
+	float YDirection;
 };

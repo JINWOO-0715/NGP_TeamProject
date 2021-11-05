@@ -5,7 +5,7 @@ Server::Server()
 	: Game()
 	, mNumPlayers(0)
 {
-
+	mIsRecvPacket.fill(false);
 }
 
 bool Server::Init()
@@ -15,7 +15,7 @@ bool Server::Init()
 	CreateGameWorld();
 
 	mListenThread = { std::thread(&Server::ListenThreadFunc, this) };
-	
+
 	return true;
 }
 
@@ -28,7 +28,41 @@ void Server::Run()
 {
 	while (mIsRunning)
 	{
+		std::lock_guard<std::mutex> guard(m);
+		bool isAllDataRecv = std::all_of(mIsRecvPacket.begin(), mIsRecvPacket.end(), [](bool value) { return value; });
+		if (isAllDataRecv)
+		{
+			// Update each paddle's position
+			for (int i = 0; i < mPacketsFromClientThread.size(); i++)
+			{
+				const ClientToServer& packet = mPacketsFromClientThread[i];
 
+				auto paddle = mEntities[LEFT_PADDLE_ID + i];
+
+				auto& transform = paddle->GetComponent<TransformComponent>();
+				auto& movement = paddle->GetComponent<MovementComponent>();
+				
+				Systems::UpdatePosition(movement.Speed, packet.YDirection, transform.Position, 0.016f);
+			}
+
+			// TODO :: Update ball's position
+
+			// Send packet to all clients
+			ServerToClient packet;
+			packet.LeftPaddleID = LEFT_PADDLE_ID;
+			packet.LeftPaddleBType = BehaviorType::Update;
+			packet.LeftPaddlePosition = mEntities[LEFT_PADDLE_ID]->GetComponent<TransformComponent>().Position;
+			packet.RightPaddleID = RIGHT_PADDLE_ID;
+			packet.RightPaddleBType = BehaviorType::Update;
+			packet.RightPaddlePosition = mEntities[RIGHT_PADDLE_ID]->GetComponent<TransformComponent>().Position;
+
+			for (const auto& clientSock : mClientSockets)
+			{
+				clientSock->Send(&packet, sizeof(packet));
+			}
+
+			mIsRecvPacket.fill(false);
+		}
 	}
 }
 
@@ -48,7 +82,7 @@ void Server::ListenThreadFunc()
 	}
 
 	SocketAddress clientAddr;
-	
+
 	while (true)
 	{
 		TCPSocketPtr clientSock = listenSock->Accept(clientAddr);
@@ -61,32 +95,58 @@ void Server::ListenThreadFunc()
 			continue;
 		}
 
-		mClientThreads[mNumPlayers] = { std::thread(&Server::ClientThreadFunc, this, clientSock) };
+		mClientThreads[mNumPlayers] = { std::thread(&Server::ClientThreadFunc, this, clientSock, mNumPlayers) };
 		mNumPlayers++;
+
+		mClientSockets.push_back(clientSock);
 	}
 }
 
-void Server::ClientThreadFunc(const TCPSocketPtr& clientSock)
+void Server::ClientThreadFunc(const TCPSocketPtr& clientSock, int clientNum)
 {
+	LOG("My Client number : {0}", clientNum);
+
 	// Send HelloPacket to client
-	ServerToClient packet;
-
-	auto leftPaddle = mEntities[LEFT_PADDLE_ID];
-	auto rightPaddle = mEntities[RIGHT_PADDLE_ID];
-
-	packet.LeftPaddleID = LEFT_PADDLE_ID;
-	packet.LeftPaddleBType = BehaviorType::Create;
-	packet.LeftPaddlePosition = leftPaddle->GetComponent<TransformComponent>().Position;
-
-	packet.RightPaddleID = RIGHT_PADDLE_ID;
-	packet.RightPaddleBType = BehaviorType::Create;
-	packet.RightPaddlePosition = rightPaddle->GetComponent<TransformComponent>().Position;
-
-	clientSock->Send(&packet, sizeof(packet));
-
-	while (true)
 	{
+		ServerToClient packet;
 
+		auto leftPaddle = mEntities[LEFT_PADDLE_ID];
+		auto rightPaddle = mEntities[RIGHT_PADDLE_ID];
+
+		packet.LeftPaddleID = LEFT_PADDLE_ID;
+		packet.LeftPaddleBType = BehaviorType::Create;
+		packet.LeftPaddlePosition = leftPaddle->GetComponent<TransformComponent>().Position;
+
+		packet.RightPaddleID = RIGHT_PADDLE_ID;
+		packet.RightPaddleBType = BehaviorType::Create;
+		packet.RightPaddlePosition = rightPaddle->GetComponent<TransformComponent>().Position;
+
+		clientSock->Send(&packet, sizeof(packet));
+	}
+
+	{
+		ClientToServer packet;
+		while (true)
+		{
+			ZeroMemory(&packet, sizeof(packet));
+
+			int err = clientSock->Recv(&packet, sizeof(packet));
+
+			if (err == SOCKET_ERROR)
+			{
+
+			}
+			else if (err == 0)
+			{
+
+			}
+			else
+			{
+				std::lock_guard<std::mutex> guard(m);
+				mPacketsFromClientThread[clientNum] = packet;
+				mIsRecvPacket[clientNum] = true;
+			}
+		}
 	}
 }
 

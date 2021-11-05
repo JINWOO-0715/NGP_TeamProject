@@ -107,7 +107,20 @@ void Client::ProcessInput()
 		mIsRunning = false;
 	}
 
-	// TODO :: Send input state packet to server.
+	// Send input state packet to server.
+	ClientToServer packet{ 0.0f };
+
+	if (state[SDL_SCANCODE_W])
+	{
+		packet.YDirection -= 1.0f;
+	}
+
+	if (state[SDL_SCANCODE_S])
+	{
+		packet.YDirection += 1.0f;
+	}
+
+	mClientSocket->Send(&packet, sizeof(packet));
 }
 
 void Client::Update()
@@ -122,7 +135,28 @@ void Client::Update()
 	}
 	mTicksCount = SDL_GetTicks();
 
-	// TODO :: Update all entities' position with data from server.
+
+	// Update all entities' position.
+	ServerToClient packet;
+	mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+
+	{
+		auto leftPaddle = mEntities[packet.LeftPaddleID];
+
+		if (packet.LeftPaddleBType == BehaviorType::Update)
+		{
+			leftPaddle->GetComponent<TransformComponent>().Position = packet.LeftPaddlePosition;
+		}
+	}
+
+	{
+		auto rightPaddle = mEntities[packet.RightPaddleID];
+
+		if (packet.LeftPaddleBType == BehaviorType::Update)
+		{
+			rightPaddle->GetComponent<TransformComponent>().Position = packet.RightPaddlePosition;
+		}
+	}
 }
 
 void Client::Render()
