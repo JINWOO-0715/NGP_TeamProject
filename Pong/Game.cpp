@@ -16,16 +16,6 @@ bool Game::Init()
 	return true;
 }
 
-void Game::Run()
-{
-	while (mIsRunning)
-	{
-		ProcessInput();
-		Update();
-		Render();
-	}
-}
-
 void Game::Shutdown()
 {
 
@@ -35,25 +25,25 @@ Entity* Game::CreateEntity()
 {
 	Entity* e = new Entity{ mRegistry.create(), this };
 	e->AddComponent<TransformComponent>();
-	mEntities.push_back(e);
+
 	return e;
 }
 
 Entity* Game::CreatePaddle()
 {
 	auto e = CreateEntity();
-	e->AddComponent<RectComponent>(15.0f, 100.0f);
-	e->AddComponent<MovementComponent>(200.0f);
+	e->AddComponent<RectComponent>(PADDLE_WIDTH, PADDLE_HEIGHT);
+	e->AddComponent<MovementComponent>(PADDLE_SPEED);
 	e->AddTag<Paddle>();
-	mEntities.push_back(e);
+
 	return e;
 }
 
 Entity* Game::CreateBall()
 {
 	auto e = CreateEntity();
-	e->AddComponent<RectComponent>(15.0f, 15.0f);
+	e->AddComponent<RectComponent>(BALL_WIDTH, BALL_WIDTH);
 	e->AddTag<Ball>();
-	mEntities.push_back(e);
+	
 	return e;
 }

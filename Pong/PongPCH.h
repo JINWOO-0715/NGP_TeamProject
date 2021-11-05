@@ -2,6 +2,10 @@
 
 #pragma warning(disable:4819)
 #pragma comment(lib, "ws2_32")
+#pragma comment(lib, "fmt")
+#pragma comment(lib, "SDL2")
+#pragma comment(lib, "SDL2_image")
+#pragma comment(lib, "spdlog")
 
 #include "PongMath.h"
 #include "Log.h"

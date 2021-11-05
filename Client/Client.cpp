@@ -3,29 +3,24 @@
 
 Client::Client()
 	: Game()
-	, mWindowWidth(0)
-	, mWindowHeight(0)
 	, mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mTicksCount(0)
+	, mClientSocket(nullptr)
+	, mIsGameStart(false)
 {
 
 }
 
 bool Client::Init()
 {
-	Game::Init();
-
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 	{
 		SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
 		return false;
 	}
 
-	mWindowWidth = 1024;
-	mWindowHeight = 768;
-
-	mWindow = SDL_CreateWindow("Pong", 100, 100, mWindowWidth, mWindowHeight, 0);
+	mWindow = SDL_CreateWindow("Pong", 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -45,20 +40,52 @@ bool Client::Init()
 		return false;
 	}
 
-	mTicksCount = SDL_GetTicks();
+	if (NetworkInit() == false)
+	{
+		LOG("Unable to initialize Network");
+		return false;
+	}
 
-	LoadData();
+	mTicksCount = SDL_GetTicks();
 
 	return true;
 }
 
 void Client::Shutdown()
 {
-	Game::Shutdown();
+	SocketUtil::StaticShutdown();
 
 	IMG_Quit();
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
+}
+
+void Client::Run()
+{
+	while (mIsRunning)
+	{
+		ProcessInput();
+		Update();
+		Render();
+	}
+}
+
+bool Client::NetworkInit()
+{
+	SocketUtil::StaticInit();
+
+	mClientSocket = SocketUtil::CreateTCPSocket();
+
+	SocketAddress serveraddr(SERVER_IP, SERVER_PORT);
+	if (mClientSocket->Connect(serveraddr) != SOCKET_ERROR)
+	{
+		RecvHelloPacket();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void Client::ProcessInput()
@@ -80,15 +107,20 @@ void Client::ProcessInput()
 		mIsRunning = false;
 	}
 
-	auto view = mRegistry.view<Paddle>();
-	for (auto entity : view)
+	// Send input state packet to server.
+	ClientToServer packet{ 0.0f };
+
+	if (state[SDL_SCANCODE_W])
 	{
-		Entity e = { entity, this };
-
-		MovementComponent& movement = e.GetComponent<MovementComponent>();
-
-		Systems::UpdateDirection(state, movement.Direction);
+		packet.YDirection -= 1.0f;
 	}
+
+	if (state[SDL_SCANCODE_S])
+	{
+		packet.YDirection += 1.0f;
+	}
+
+	mClientSocket->Send(&packet, sizeof(packet));
 }
 
 void Client::Update()
@@ -103,15 +135,27 @@ void Client::Update()
 	}
 	mTicksCount = SDL_GetTicks();
 
-	auto view = mRegistry.view<Paddle>();
-	for (auto entity : view)
+
+	// Update all entities' position.
+	ServerToClient packet;
+	mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+
 	{
-		Entity e = { entity, this };
+		auto leftPaddle = mEntities[packet.LeftPaddleID];
 
-		MovementComponent& movement = e.GetComponent<MovementComponent>();
-		TransformComponent& transform = e.GetComponent<TransformComponent>();
+		if (packet.LeftPaddleBType == BehaviorType::Update)
+		{
+			leftPaddle->GetComponent<TransformComponent>().Position = packet.LeftPaddlePosition;
+		}
+	}
 
-		Systems::UpdatePosition(movement.Speed, movement.Direction, transform.Position, deltaTime);
+	{
+		auto rightPaddle = mEntities[packet.RightPaddleID];
+
+		if (packet.LeftPaddleBType == BehaviorType::Update)
+		{
+			rightPaddle->GetComponent<TransformComponent>().Position = packet.RightPaddlePosition;
+		}
 	}
 }
 
@@ -131,11 +175,27 @@ void Client::Render()
 	SDL_RenderPresent(mRenderer);
 }
 
-void Client::LoadData()
+void Client::RecvHelloPacket()
 {
-	CreatePaddle();
+	ServerToClient packet;
 
-	auto ball = CreateBall();
-	auto& transform = ball->GetComponent<TransformComponent>();
-	transform.Position = Vector2(mWindowWidth / 2.0f, mWindowHeight / 2.0f);
+	mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+
+	// Create left paddle
+	{
+		auto paddle = CreatePaddle();
+		auto& id = paddle->AddComponent<IdComponent>(packet.LeftPaddleID);
+		auto& transform = paddle->GetComponent<TransformComponent>();
+		transform.Position = packet.LeftPaddlePosition;
+		mEntities[id.ID] = paddle;
+	}
+
+	// Create right paddle
+	{
+		auto paddle = CreatePaddle();
+		auto& id = paddle->AddComponent<IdComponent>(packet.RightPaddleID);
+		auto& transform = paddle->GetComponent<TransformComponent>();
+		transform.Position = packet.RightPaddlePosition;
+		mEntities[id.ID] = paddle;
+	}
 }
