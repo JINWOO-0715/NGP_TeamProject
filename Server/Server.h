@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 class Server : public Game
 {
 public:
@@ -11,6 +13,15 @@ public:
 	virtual void Run() override;
 
 private:
-	vector<TCPSocketPtr> mSockets;
-	TCPSocketPtr mListenSocket;
+	void ListenThreadFunc();
+	void ClientThreadFunc(const TCPSocketPtr& clientSock);
+
+private:
+	static const int MAXIMUM_PLAYER_NUM = 2;
+
+	std::thread mListenThread;
+	
+	std::thread mClientThreads[MAXIMUM_PLAYER_NUM];
+
+	uint8_t mNumPlayers;
 };

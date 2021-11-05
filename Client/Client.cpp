@@ -3,8 +3,6 @@
 
 Client::Client()
 	: Game()
-	, mWindowWidth(0)
-	, mWindowHeight(0)
 	, mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mTicksCount(0)
@@ -15,23 +13,13 @@ Client::Client()
 
 bool Client::Init()
 {
-	Game::Init();
-	if (NetworkInit() == false)
-	{
-		LOG("Unable to initialize Network");
-		return false;
-	}
-
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
 	{
 		SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
 		return false;
 	}
 
-	mWindowWidth = 1024;
-	mWindowHeight = 768;
-
-	mWindow = SDL_CreateWindow("Pong", 100, 100, mWindowWidth, mWindowHeight, 0);
+	mWindow = SDL_CreateWindow("Pong", 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -51,6 +39,12 @@ bool Client::Init()
 		return false;
 	}
 
+	if (NetworkInit() == false)
+	{
+		LOG("Unable to initialize Network");
+		return false;
+	}
+
 	mTicksCount = SDL_GetTicks();
 
 	LoadData();
@@ -61,8 +55,6 @@ bool Client::Init()
 void Client::Shutdown()
 {
 	SocketUtil::StaticShutdown();
-
-	Game::Shutdown();
 
 	IMG_Quit();
 	SDL_DestroyWindow(mWindow);
@@ -85,7 +77,7 @@ bool Client::NetworkInit()
 
 	mClientSocket = SocketUtil::CreateTCPSocket();
 
-	SocketAddress serveraddr("127.0.0.1", 9000);
+	SocketAddress serveraddr(SERVER_IP, SERVER_PORT);
 	if (mClientSocket->Connect(serveraddr) == SOCKET_ERROR)
 	{
 		return false;

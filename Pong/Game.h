@@ -23,6 +23,12 @@ protected:
 	bool mIsRunning;
 	entt::registry mRegistry;
 
+	const int SERVER_PORT = 9000;
+	const char* SERVER_IP = "127.0.0.1";
+
+	const int WINDOW_WIDTH = 1024;
+	const int WINDOW_HEIGHT = 768;
+
 private:
 	vector<Entity*> mEntities;
 };

@@ -3,34 +3,17 @@
 
 Server::Server()
 	: Game()
-	, mListenSocket(nullptr)
+	, mNumPlayers(0)
 {
 
 }
 
 bool Server::Init()
 {
-	Game::Init();
-
 	SocketUtil::StaticInit();
 
-	mListenSocket = SocketUtil::CreateTCPSocket();
-	SocketAddress addr("127.0.0.1", 9000);
-
-	if (mListenSocket->Bind(addr) == SOCKET_ERROR)
-	{
-		LOG("Cannot bind listen socket");
-		return false;
-	}
-
-	if (mListenSocket->Listen() == SOCKET_ERROR)
-	{
-		LOG("Cannot change socket to listening state");
-		return false;
-	}
-
-	mSockets.push_back(mListenSocket);
-
+	mListenThread = { std::thread(&Server::ListenThreadFunc, this) };
+	
 	return true;
 }
 
@@ -41,31 +24,47 @@ void Server::Shutdown()
 
 void Server::Run()
 {
-	vector<TCPSocketPtr> readSockets;
-
 	while (mIsRunning)
 	{
-		if (SocketUtil::Select(&mSockets, &readSockets, nullptr, nullptr, nullptr, nullptr) <= 0)
+
+	}
+}
+
+void Server::ListenThreadFunc()
+{
+	TCPSocketPtr listenSock = SocketUtil::CreateTCPSocket();
+	SocketAddress addr(SERVER_IP, SERVER_PORT);
+
+	if (listenSock->Bind(addr) == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	if (listenSock->Listen() == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	SocketAddress clientAddr;
+	
+	while (true)
+	{
+		TCPSocketPtr clientSock = listenSock->Accept(clientAddr);
+		LOG("Hello, client! {0}", clientAddr.ToString());
+
+		if (mNumPlayers >= MAXIMUM_PLAYER_NUM)
 		{
+			LOG("Pong does not support more than {0} players.", MAXIMUM_PLAYER_NUM);
+			clientSock.reset();
 			continue;
 		}
 
-		for (const auto& sock : readSockets)
-		{
-			if (sock == mListenSocket)
-			{
-				SocketAddress clientAddr;
-				TCPSocketPtr clientSock = mListenSocket->Accept(clientAddr);
-				mSockets.push_back(clientSock);
-
-				LOG("Hello, client! {0}", clientAddr.ToString());
-
-				// TODO :: Do something when client connects
-			}
-			else
-			{
-				// TODO :: Process packet sent from client
-			}
-		}
+		mClientThreads[mNumPlayers] = { std::thread(&Server::ClientThreadFunc, this, clientSock) };
+		mNumPlayers++;
 	}
+}
+
+void Server::ClientThreadFunc(const TCPSocketPtr& clientSock)
+{
+	LOG("Im on my way!");
 }
