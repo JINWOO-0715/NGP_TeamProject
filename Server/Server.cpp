@@ -45,7 +45,7 @@ void Server::Run()
 				Systems::UpdatePosition(movement.Speed, Vector2(0.0f, packet.YDirection), transform.Position, 0.016f);
 			}
 
-			// TODO :: Update ball's position
+			// Update ball's position
 			{
 				auto ballOne = mEntities[BALL_ONE_ID];
 
@@ -53,6 +53,65 @@ void Server::Run()
 				auto& movement = ballOne->GetComponent<MovementComponent>();
 
 				Systems::UpdatePosition(movement.Speed, movement.Direction, transform.Position, 0.016f);
+			}
+
+			// Collision check ball-paddle
+			{
+				for (uint8_t i = LEFT_PADDLE_ID; i <= RIGHT_PADDLE_ID; i++)
+				{
+					auto paddle = mEntities[i];
+
+					auto& paddleTransform = paddle->GetComponent<TransformComponent>();
+					auto& paddleRect = paddle->GetComponent<RectComponent>();
+					
+					SDL_Rect pRect = {
+						paddleTransform.Position.x, paddleTransform.Position.y,
+						paddleRect.Width, paddleRect.Height
+					};
+
+					for (uint8_t j = BALL_ONE_ID; j <= BALL_TWO_ID; j++)
+					{
+						auto ball = mEntities[j];
+						
+						auto& ballTransform = ball->GetComponent<TransformComponent>();
+						auto& ballRect = ball->GetComponent<RectComponent>();
+
+						SDL_Rect bRect = {
+						ballTransform.Position.x, ballTransform.Position.y,
+						ballRect.Width, ballRect.Height
+						};
+
+						bool isCollide = Systems::Intersects(pRect, bRect);
+
+						if (isCollide)
+						{
+							auto& ballMovement = ball->GetComponent<MovementComponent>();
+							ballMovement.Direction *= -1;
+						}
+					}
+				}
+			}
+
+			// Collision check ball-wall
+			{
+				for (uint8_t i = BALL_ONE_ID; i <= BALL_TWO_ID; i++)
+				{
+					auto ball = mEntities[i];
+
+					auto& transform = ball->GetComponent<TransformComponent>();
+					auto& movement = ball->GetComponent<MovementComponent>();
+
+					const auto& ballPos = transform.Position;
+					if (ballPos.x <= 0 || ballPos.x + BALL_WIDTH > WINDOW_WIDTH)
+					{
+						movement.Direction.x *= -1.0f;
+					}
+
+					if (ballPos.y <= 0 || ballPos.y + BALL_WIDTH > WINDOW_HEIGHT)
+					{
+						movement.Direction.y *= -1.0f;
+					}
+				}
 			}
 
 			// Send packet to all clients

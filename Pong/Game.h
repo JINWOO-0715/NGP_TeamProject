@@ -32,7 +32,7 @@ protected:
 	const float PADDLE_HEIGHT = 100.0f;
 	const float PADDLE_SPEED = 200.0f;
 	const float BALL_WIDTH = 15.0f;
-	const float BALL_SPEED = 50.0f;
+	const float BALL_SPEED = 150.0f;
 
 	unordered_map<uint8_t, Entity*> mEntities;
 };
