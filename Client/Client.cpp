@@ -166,6 +166,15 @@ void Client::Update()
 			ballOne->GetComponent<TransformComponent>().Position = packet.BallOnePosition;
 		}
 	}
+
+	{
+		auto ballTwo = mEntities[packet.BallTwoID];
+
+		if (packet.BallTwoBType == BehaviorType::Update)
+		{
+			ballTwo->GetComponent<TransformComponent>().Position = packet.BallTwoPosition;
+		}
+	}
 }
 
 void Client::Render()
@@ -214,6 +223,15 @@ void Client::RecvHelloPacket()
 		auto& id = ball->AddComponent<IdComponent>(packet.BallOneID);
 		auto& transform = ball->GetComponent<TransformComponent>();
 		transform.Position = packet.BallOnePosition;
+		mEntities[id.ID] = ball;
+	}
+
+	// Create ball two
+	{
+		auto ball = CreateBall();
+		auto& id = ball->AddComponent<IdComponent>(packet.BallTwoID);
+		auto& transform = ball->GetComponent<TransformComponent>();
+		transform.Position = packet.BallTwoPosition;
 		mEntities[id.ID] = ball;
 	}
 }

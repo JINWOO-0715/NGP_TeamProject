@@ -46,11 +46,12 @@ void Server::Run()
 			}
 
 			// Update ball's position
+			for (int i = BALL_ONE_ID; i <= BALL_TWO_ID; i++)
 			{
-				auto ballOne = mEntities[BALL_ONE_ID];
+				auto ball = mEntities[i];
 
-				auto& transform = ballOne->GetComponent<TransformComponent>();
-				auto& movement = ballOne->GetComponent<MovementComponent>();
+				auto& transform = ball->GetComponent<TransformComponent>();
+				auto& movement = ball->GetComponent<MovementComponent>();
 
 				Systems::UpdatePosition(movement.Speed, movement.Direction, transform.Position, 0.016f);
 			}
@@ -63,22 +64,22 @@ void Server::Run()
 
 					auto& paddleTransform = paddle->GetComponent<TransformComponent>();
 					auto& paddleRect = paddle->GetComponent<RectComponent>();
-					
+
 					SDL_Rect pRect = {
-						paddleTransform.Position.x, paddleTransform.Position.y,
-						paddleRect.Width, paddleRect.Height
+						static_cast<int>(paddleTransform.Position.x), static_cast<int>(paddleTransform.Position.y),
+						static_cast<int>(paddleRect.Width), static_cast<int>(paddleRect.Height)
 					};
 
 					for (uint8_t j = BALL_ONE_ID; j <= BALL_TWO_ID; j++)
 					{
 						auto ball = mEntities[j];
-						
+
 						auto& ballTransform = ball->GetComponent<TransformComponent>();
 						auto& ballRect = ball->GetComponent<RectComponent>();
 
 						SDL_Rect bRect = {
-						ballTransform.Position.x, ballTransform.Position.y,
-						ballRect.Width, ballRect.Height
+						static_cast<int>(ballTransform.Position.x), static_cast<int>(ballTransform.Position.y),
+						static_cast<int>(ballRect.Width), static_cast<int>(ballRect.Height)
 						};
 
 						bool isCollide = Systems::Intersects(pRect, bRect);
@@ -125,6 +126,9 @@ void Server::Run()
 			packet.BallOneID = BALL_ONE_ID;
 			packet.BallOneBType = BehaviorType::Update;
 			packet.BallOnePosition = mEntities[BALL_ONE_ID]->GetComponent<TransformComponent>().Position;
+			packet.BallTwoID = BALL_TWO_ID;
+			packet.BallTwoBType = BehaviorType::Update;
+			packet.BallTwoPosition = mEntities[BALL_TWO_ID]->GetComponent<TransformComponent>().Position;
 
 			for (const auto& clientSock : mClientSockets)
 			{
@@ -183,6 +187,7 @@ void Server::ClientThreadFunc(const TCPSocketPtr& clientSock, int clientNum)
 		auto leftPaddle = mEntities[LEFT_PADDLE_ID];
 		auto rightPaddle = mEntities[RIGHT_PADDLE_ID];
 		auto ballOne = mEntities[BALL_ONE_ID];
+		auto ballTwo = mEntities[BALL_TWO_ID];
 
 		packet.LeftPaddleID = LEFT_PADDLE_ID;
 		packet.LeftPaddleBType = BehaviorType::Create;
@@ -195,6 +200,10 @@ void Server::ClientThreadFunc(const TCPSocketPtr& clientSock, int clientNum)
 		packet.BallOneID = BALL_ONE_ID;
 		packet.BallOneBType = BehaviorType::Create;
 		packet.BallOnePosition = ballOne->GetComponent<TransformComponent>().Position;
+
+		packet.BallTwoID = BALL_TWO_ID;
+		packet.BallTwoBType = BehaviorType::Create;
+		packet.BallTwoPosition = ballTwo->GetComponent<TransformComponent>().Position;
 
 		clientSock->Send(&packet, sizeof(packet));
 	}
@@ -245,6 +254,18 @@ void Server::CreateGameWorld()
 		auto& movement = ball->GetComponent<MovementComponent>();
 		transform.Position = Vector2((WINDOW_WIDTH / 2) - (BALL_WIDTH / 2), (WINDOW_HEIGHT / 2) - (BALL_WIDTH / 2));  // Center of screen
 		movement.Direction = Vector2(-1.0f, -1.0f); // Up-Left
+		mEntities[id.ID] = ball;
+	}
+
+	// Create Ball two
+	{
+		auto ball = CreateBall();
+		auto& id = ball->AddComponent<IdComponent>(BALL_TWO_ID);
+		auto& transform = ball->GetComponent<TransformComponent>();
+		auto& movement = ball->GetComponent<MovementComponent>();
+		transform.Position = Vector2((WINDOW_WIDTH / 2) - (BALL_WIDTH / 2), (WINDOW_HEIGHT / 2) - (BALL_WIDTH / 2));  // Center of screen
+		movement.Direction = Vector2(1.0f, 1.0f); // Down-Right
+		movement.Speed = 200.0f;
 		mEntities[id.ID] = ball;
 	}
 }
