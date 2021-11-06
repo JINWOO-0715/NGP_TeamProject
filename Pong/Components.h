@@ -34,14 +34,18 @@ struct MovementComponent
 {
 	MovementComponent()
 		: Speed(0.0f)
-		, Direction(0.0f) {}
+		, Direction(Vector2::Zero) {}
 
 	MovementComponent(float speed)
 		: Speed(speed)
-		, Direction(0.0f) {}
+		, Direction(Vector2::Zero) {}
+
+	MovementComponent(float speed, const Vector2& direction)
+		: Speed(speed)
+		, Direction(Direction) {}
 
 	float Speed;
-	float Direction;
+	Vector2 Direction;
 };
 
 struct IdComponent

@@ -120,7 +120,12 @@ void Client::ProcessInput()
 		packet.YDirection += 1.0f;
 	}
 
-	mClientSocket->Send(&packet, sizeof(packet));
+	int err = mClientSocket->Send(&packet, sizeof(packet));
+
+	if (err == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
+	}
 }
 
 void Client::Update()
@@ -138,7 +143,12 @@ void Client::Update()
 
 	// Update all entities' position.
 	ServerToClient packet;
-	mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+	int err = mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+
+	if (err == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
+	}
 
 	{
 		auto leftPaddle = mEntities[packet.LeftPaddleID];
@@ -152,9 +162,27 @@ void Client::Update()
 	{
 		auto rightPaddle = mEntities[packet.RightPaddleID];
 
-		if (packet.LeftPaddleBType == BehaviorType::Update)
+		if (packet.RightPaddleBType == BehaviorType::Update)
 		{
 			rightPaddle->GetComponent<TransformComponent>().Position = packet.RightPaddlePosition;
+		}
+	}
+
+	{
+		auto ballOne = mEntities[packet.BallOneID];
+
+		if (packet.BallOneBType == BehaviorType::Update)
+		{
+			ballOne->GetComponent<TransformComponent>().Position = packet.BallOnePosition;
+		}
+	}
+
+	{
+		auto ballTwo = mEntities[packet.BallTwoID];
+
+		if (packet.BallTwoBType == BehaviorType::Update)
+		{
+			ballTwo->GetComponent<TransformComponent>().Position = packet.BallTwoPosition;
 		}
 	}
 }
@@ -197,5 +225,23 @@ void Client::RecvHelloPacket()
 		auto& transform = paddle->GetComponent<TransformComponent>();
 		transform.Position = packet.RightPaddlePosition;
 		mEntities[id.ID] = paddle;
+	}
+
+	// Create ball one
+	{
+		auto ball = CreateBall();
+		auto& id = ball->AddComponent<IdComponent>(packet.BallOneID);
+		auto& transform = ball->GetComponent<TransformComponent>();
+		transform.Position = packet.BallOnePosition;
+		mEntities[id.ID] = ball;
+	}
+
+	// Create ball two
+	{
+		auto ball = CreateBall();
+		auto& id = ball->AddComponent<IdComponent>(packet.BallTwoID);
+		auto& transform = ball->GetComponent<TransformComponent>();
+		transform.Position = packet.BallTwoPosition;
+		mEntities[id.ID] = ball;
 	}
 }
