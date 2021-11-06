@@ -120,7 +120,12 @@ void Client::ProcessInput()
 		packet.YDirection += 1.0f;
 	}
 
-	mClientSocket->Send(&packet, sizeof(packet));
+	int err = mClientSocket->Send(&packet, sizeof(packet));
+
+	if (err == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
+	}
 }
 
 void Client::Update()
@@ -138,7 +143,12 @@ void Client::Update()
 
 	// Update all entities' position.
 	ServerToClient packet;
-	mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+	int err = mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+
+	if (err == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
+	}
 
 	{
 		auto leftPaddle = mEntities[packet.LeftPaddleID];
