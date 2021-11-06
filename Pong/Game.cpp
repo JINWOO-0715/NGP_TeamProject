@@ -43,6 +43,7 @@ Entity* Game::CreateBall()
 {
 	auto e = CreateEntity();
 	e->AddComponent<RectComponent>(BALL_WIDTH, BALL_WIDTH);
+	e->AddComponent<MovementComponent>(BALL_SPEED);
 	e->AddTag<Ball>();
 	
 	return e;

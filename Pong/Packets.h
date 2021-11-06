@@ -23,6 +23,11 @@ struct ServerToClient
 	uint8_t RightPaddleID;
 	BehaviorType RightPaddleBType;
 	Vector2 RightPaddlePosition;
+
+	// Ball One
+	uint8_t BallOneID;
+	BehaviorType BallOneBType;
+	Vector2 BallOnePosition;
 };
 
 struct ClientToServer

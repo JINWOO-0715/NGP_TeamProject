@@ -152,9 +152,18 @@ void Client::Update()
 	{
 		auto rightPaddle = mEntities[packet.RightPaddleID];
 
-		if (packet.LeftPaddleBType == BehaviorType::Update)
+		if (packet.RightPaddleBType == BehaviorType::Update)
 		{
 			rightPaddle->GetComponent<TransformComponent>().Position = packet.RightPaddlePosition;
+		}
+	}
+
+	{
+		auto ballOne = mEntities[packet.BallOneID];
+
+		if (packet.BallOneBType == BehaviorType::Update)
+		{
+			ballOne->GetComponent<TransformComponent>().Position = packet.BallOnePosition;
 		}
 	}
 }
@@ -197,5 +206,14 @@ void Client::RecvHelloPacket()
 		auto& transform = paddle->GetComponent<TransformComponent>();
 		transform.Position = packet.RightPaddlePosition;
 		mEntities[id.ID] = paddle;
+	}
+
+	// Create ball one
+	{
+		auto ball = CreateBall();
+		auto& id = ball->AddComponent<IdComponent>(packet.BallOneID);
+		auto& transform = ball->GetComponent<TransformComponent>();
+		transform.Position = packet.BallOnePosition;
+		mEntities[id.ID] = ball;
 	}
 }

@@ -29,9 +29,10 @@ void Systems::UpdateDirection(const uint8_t* keystates, float& outDirection)
 	}
 }
 
-void Systems::UpdatePosition(float speed, float direction, Vector2& outPosition, float deltaTime)
+void Systems::UpdatePosition(float speed, const Vector2& direction, Vector2& outPosition, float deltaTime)
 {
-	outPosition.y += speed * direction * deltaTime;
+	outPosition.x += speed * direction.x * deltaTime;
+	outPosition.y += speed * direction.y * deltaTime;
 }
 
 
