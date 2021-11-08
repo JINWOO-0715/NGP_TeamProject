@@ -79,7 +79,7 @@ bool Client::NetworkInit()
 	SocketAddress serveraddr(SERVER_IP, SERVER_PORT);
 	if (mClientSocket->Connect(serveraddr) != SOCKET_ERROR)
 	{
-		RecvHelloPacket();
+		RecvPacketFromServer();
 		return true;
 	}
 	else
@@ -107,25 +107,7 @@ void Client::ProcessInput()
 		mIsRunning = false;
 	}
 
-	// Send input state packet to server.
-	ClientToServer packet{ 0.0f };
-
-	if (state[SDL_SCANCODE_W])
-	{
-		packet.YDirection -= 1.0f;
-	}
-
-	if (state[SDL_SCANCODE_S])
-	{
-		packet.YDirection += 1.0f;
-	}
-
-	int err = mClientSocket->Send(&packet, sizeof(packet));
-
-	if (err == SOCKET_ERROR)
-	{
-		exit(EXIT_FAILURE);
-	}
+	SendPacketToServer(state);
 }
 
 void Client::Update()
@@ -140,51 +122,7 @@ void Client::Update()
 	}
 	mTicksCount = SDL_GetTicks();
 
-
-	// Update all entities' position.
-	ServerToClient packet;
-	int err = mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
-
-	if (err == SOCKET_ERROR)
-	{
-		exit(EXIT_FAILURE);
-	}
-
-	{
-		auto leftPaddle = mEntities[packet.LeftPaddleID];
-
-		if (packet.LeftPaddleBType == BehaviorType::Update)
-		{
-			leftPaddle->GetComponent<TransformComponent>().Position = packet.LeftPaddlePosition;
-		}
-	}
-
-	{
-		auto rightPaddle = mEntities[packet.RightPaddleID];
-
-		if (packet.RightPaddleBType == BehaviorType::Update)
-		{
-			rightPaddle->GetComponent<TransformComponent>().Position = packet.RightPaddlePosition;
-		}
-	}
-
-	{
-		auto ballOne = mEntities[packet.BallOneID];
-
-		if (packet.BallOneBType == BehaviorType::Update)
-		{
-			ballOne->GetComponent<TransformComponent>().Position = packet.BallOnePosition;
-		}
-	}
-
-	{
-		auto ballTwo = mEntities[packet.BallTwoID];
-
-		if (packet.BallTwoBType == BehaviorType::Update)
-		{
-			ballTwo->GetComponent<TransformComponent>().Position = packet.BallTwoPosition;
-		}
-	}
+	RecvPacketFromServer();
 }
 
 void Client::Render()
@@ -203,12 +141,60 @@ void Client::Render()
 	SDL_RenderPresent(mRenderer);
 }
 
-void Client::RecvHelloPacket()
+void Client::RecvPacketFromServer()
 {
 	ServerToClient packet;
 
-	mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
+	int err = mClientSocket->Recv(&packet, sizeof(packet), MSG_WAITALL);
 
+	if (err <= 0)
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	switch (packet.PType)
+	{
+	case PacketType::Hello:
+		ProcessHelloPacket(packet);
+		break;
+
+	case PacketType::Replicate:
+		ProcessReplicatePacket(packet);
+		break;
+
+	case PacketType::GameOver:
+		ProcessGameOverPacket(packet);
+		break;
+
+	default:
+		break;
+	}
+}
+
+void Client::SendPacketToServer(const uint8_t* keystate)
+{
+	ClientToServer packet{ 0.0f };
+
+	if (keystate[SDL_SCANCODE_W])
+	{
+		packet.YDirection -= 1.0f;
+	}
+
+	if (keystate[SDL_SCANCODE_S])
+	{
+		packet.YDirection += 1.0f;
+	}
+
+	int err = mClientSocket->Send(&packet, sizeof(packet));
+
+	if (err == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
+	}
+}
+
+void Client::ProcessHelloPacket(const ServerToClient& packet)
+{
 	// Create left paddle
 	{
 		auto paddle = CreatePaddle();
@@ -245,3 +231,25 @@ void Client::RecvHelloPacket()
 		mEntities[id.ID] = ball;
 	}
 }
+
+void Client::ProcessReplicatePacket(const ServerToClient& packet)
+{
+	// Update all entities' position
+	auto leftPaddle = mEntities[packet.LeftPaddleID];
+	leftPaddle->GetComponent<TransformComponent>().Position = packet.LeftPaddlePosition;
+
+	auto rightPaddle = mEntities[packet.RightPaddleID];
+	rightPaddle->GetComponent<TransformComponent>().Position = packet.RightPaddlePosition;
+
+	auto ballOne = mEntities[packet.BallOneID];
+	ballOne->GetComponent<TransformComponent>().Position = packet.BallOnePosition;
+
+	auto ballTwo = mEntities[packet.BallTwoID];
+	ballTwo->GetComponent<TransformComponent>().Position = packet.BallTwoPosition;
+}
+
+void Client::ProcessGameOverPacket(const ServerToClient& packet)
+{
+
+}
+
