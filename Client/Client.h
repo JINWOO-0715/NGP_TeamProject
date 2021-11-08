@@ -21,6 +21,10 @@ private:
 	void RecvPacketFromServer();
 	void SendPacketToServer(const uint8_t* keystate);
 
+	void ProcessHelloPacket(const ServerToClient& packet);
+	void ProcessReplicatePacket(const ServerToClient& packet);
+	void ProcessGameOverPacket(const ServerToClient& packet);
+
 private:
 	SDL_Window* mWindow;
 	SDL_Renderer* mRenderer;

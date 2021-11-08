@@ -23,7 +23,7 @@ private:
 	void CheckBallAndPaddle();
 	void CheckBallAndWall();
 
-	void SendPacketToClient(BehaviorType bType, const TCPSocketPtr& clientSock = nullptr);
+	void SendPacketToClient(PacketType pType, const TCPSocketPtr& clientSock = nullptr);
 
 private:
 	static const int MAXIMUM_PLAYER_NUM = 2;

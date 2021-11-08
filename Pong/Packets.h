@@ -5,33 +5,31 @@ constexpr uint8_t RIGHT_PADDLE_ID = 1;
 constexpr uint8_t BALL_ONE_ID = 2;
 constexpr uint8_t BALL_TWO_ID = 3;
 
-enum class BehaviorType
+enum class PacketType
 {
-	Create,
-	Update,
-	Delete,
+	Hello,
+	Replicate,
+	GameOver
 };
 
 struct ServerToClient
 {
+	PacketType PType;
+
 	// Left paddle
 	uint8_t LeftPaddleID;
-	BehaviorType LeftPaddleBType;
 	Vector2 LeftPaddlePosition;
 
 	// Right paddle
 	uint8_t RightPaddleID;
-	BehaviorType RightPaddleBType;
 	Vector2 RightPaddlePosition;
 
 	// Ball One
 	uint8_t BallOneID;
-	BehaviorType BallOneBType;
 	Vector2 BallOnePosition;
 
 	// Ball Two
 	uint8_t BallTwoID;
-	BehaviorType BallTwoBType;
 	Vector2 BallTwoPosition;
 };
 

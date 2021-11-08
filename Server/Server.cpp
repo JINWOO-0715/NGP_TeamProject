@@ -37,7 +37,7 @@ void Server::Run()
 			CheckBallAndPaddle();
 			CheckBallAndWall();
 
-			SendPacketToClient(BehaviorType::Update);
+			SendPacketToClient(PacketType::Replicate);
 
 			mIsRecvPacket.fill(false);
 		}
@@ -84,7 +84,7 @@ void Server::ClientThreadFunc(const TCPSocketPtr& clientSock, int clientNum)
 {
 	LOG("My Client number : {0}", clientNum);
 
-	SendPacketToClient(BehaviorType::Create);
+	SendPacketToClient(PacketType::Hello, clientSock);
 
 	ClientToServer packet;
 	while (true)
@@ -233,20 +233,19 @@ void Server::CheckBallAndWall()
 	}
 }
 
-void Server::SendPacketToClient(BehaviorType bType, const TCPSocketPtr& clientSock /*= nullptr*/)
+void Server::SendPacketToClient(PacketType pType, const TCPSocketPtr& clientSock /*= nullptr*/)
 {
 	ServerToClient packet;
+
+	packet.PType = pType;
+
 	packet.LeftPaddleID = LEFT_PADDLE_ID;
-	packet.LeftPaddleBType = bType;
 	packet.LeftPaddlePosition = mEntities[LEFT_PADDLE_ID]->GetComponent<TransformComponent>().Position;
 	packet.RightPaddleID = RIGHT_PADDLE_ID;
-	packet.RightPaddleBType = bType;
 	packet.RightPaddlePosition = mEntities[RIGHT_PADDLE_ID]->GetComponent<TransformComponent>().Position;
 	packet.BallOneID = BALL_ONE_ID;
-	packet.BallOneBType = bType;
 	packet.BallOnePosition = mEntities[BALL_ONE_ID]->GetComponent<TransformComponent>().Position;
 	packet.BallTwoID = BALL_TWO_ID;
-	packet.BallTwoBType = bType;
 	packet.BallTwoPosition = mEntities[BALL_TWO_ID]->GetComponent<TransformComponent>().Position;
 
 	if (clientSock == nullptr) // Send packet to all clients
