@@ -10,7 +10,6 @@ public:
 
 	virtual bool Init() override;
 	virtual void Shutdown() override;
-
 	virtual void Run() override;
 
 private:
@@ -18,6 +17,13 @@ private:
 	void ClientThreadFunc(const TCPSocketPtr& clientSock, int clientNum);
 
 	void CreateGameWorld();
+
+	void UpdatePaddlesPosition();
+	void UpdateBallsPosition();
+	void CheckBallAndPaddle();
+	void CheckBallAndWall();
+
+	void SendPacketToClient(BehaviorType bType, const TCPSocketPtr& clientSock = nullptr);
 
 private:
 	static const int MAXIMUM_PLAYER_NUM = 2;

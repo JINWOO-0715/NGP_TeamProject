@@ -79,7 +79,7 @@ bool Client::NetworkInit()
 	SocketAddress serveraddr(SERVER_IP, SERVER_PORT);
 	if (mClientSocket->Connect(serveraddr) != SOCKET_ERROR)
 	{
-		RecvHelloPacket();
+		RecvPacketFromServer();
 		return true;
 	}
 	else
@@ -107,25 +107,7 @@ void Client::ProcessInput()
 		mIsRunning = false;
 	}
 
-	// Send input state packet to server.
-	ClientToServer packet{ 0.0f };
-
-	if (state[SDL_SCANCODE_W])
-	{
-		packet.YDirection -= 1.0f;
-	}
-
-	if (state[SDL_SCANCODE_S])
-	{
-		packet.YDirection += 1.0f;
-	}
-
-	int err = mClientSocket->Send(&packet, sizeof(packet));
-
-	if (err == SOCKET_ERROR)
-	{
-		exit(EXIT_FAILURE);
-	}
+	SendPacketToServer(state);
 }
 
 void Client::Update()
@@ -203,7 +185,7 @@ void Client::Render()
 	SDL_RenderPresent(mRenderer);
 }
 
-void Client::RecvHelloPacket()
+void Client::RecvPacketFromServer()
 {
 	ServerToClient packet;
 
@@ -243,5 +225,27 @@ void Client::RecvHelloPacket()
 		auto& transform = ball->GetComponent<TransformComponent>();
 		transform.Position = packet.BallTwoPosition;
 		mEntities[id.ID] = ball;
+	}
+}
+
+void Client::SendPacketToServer(const uint8_t* keystate)
+{
+	ClientToServer packet{ 0.0f };
+
+	if (keystate[SDL_SCANCODE_W])
+	{
+		packet.YDirection -= 1.0f;
+	}
+
+	if (keystate[SDL_SCANCODE_S])
+	{
+		packet.YDirection += 1.0f;
+	}
+
+	int err = mClientSocket->Send(&packet, sizeof(packet));
+
+	if (err == SOCKET_ERROR)
+	{
+		exit(EXIT_FAILURE);
 	}
 }

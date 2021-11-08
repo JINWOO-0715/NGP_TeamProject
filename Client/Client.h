@@ -18,7 +18,8 @@ private:
 	void Update();
 	void Render();
 
-	void RecvHelloPacket();
+	void RecvPacketFromServer();
+	void SendPacketToServer(const uint8_t* keystate);
 
 private:
 	SDL_Window* mWindow;
